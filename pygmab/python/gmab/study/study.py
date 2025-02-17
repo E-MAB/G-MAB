@@ -1,6 +1,7 @@
 from collections.abc import Callable
 
 from gmab import logging
+from gmab.config.config import Configurator
 from gmab.gmab import Gmab
 
 _logger = logging.get_logger(__name__)
@@ -13,11 +14,11 @@ class Study:
     and to set/get attributes of the study itself that are user-defined.
 
     Note that the direct use of this constructor is not recommended.
-    To create a study, use :func:`~gmab.create_study`.
-
+    Instead, use :func:`~gmab.initialize`.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, config: Configurator) -> None:
+        self._config: Configurator = config
         self._best_trial: dict | None = None
 
     @property
@@ -35,7 +36,6 @@ class Study:
     def optimize(
         self,
         func: Callable,
-        bounds: list[tuple],
         n_simulations: int,
     ) -> None:
         """Optimize an objective function.
@@ -55,11 +55,6 @@ class Study:
                 The number of simulations per trial. A trial will continue until the
                 number of elapsed simulations reaches `n_simulations`.
         """
-        gmab = Gmab(func, bounds)
+        gmab = Gmab(func, self._config.bounds)
         self._best_trial = gmab.optimize(n_simulations)
         _logger.info("completed")
-
-
-def create_study() -> Study:
-    """Create a new :class:`~gmab.study.Study`."""
-    return Study()
